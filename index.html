@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>埃及 8 天 · 中秋国庆行程地图</title>
+<meta name="description" content="开罗 · 马特鲁地中海 · 卢克索 · 红海赫尔格达 —— 历史 + 海岛 8 天参考行程">
+<meta name="theme-color" content="#f6f1e7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+/* ═══════════════════════════════════════════
+   Design System — edit :root to change theme
+   ═══════════════════════════════════════════ */
+:root {
+  --bg-primary:    #fffdf8;
+  --bg-secondary:  #f6f1e7;
+  --bg-tertiary:   #fbf7ee;
+  --bg-grouped:    #efe7d5;
+  --bg-elevated:   #fffdf8;
+  --text-primary:   #2b2419;
+  --text-secondary: #8a7f6a;
+  --text-tertiary:  #b3a88f;
+  --accent:        #b0842b;
+  --accent-hover:  #c6923a;
+  --tint-red:    #ff3b30;
+  --tint-orange: #ff9500;
+  --tint-green:  #34c759;
+  --tint-blue:   #007aff;
+  --tint-purple: #af52de;
+  --tint-pink:   #ff2d55;
+  --separator:  rgba(120, 90, 30, .15);
+  --shadow-sm:  0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:  0 4px 14px rgba(0,0,0,.08);
+  --shadow-lg:  0 8px 30px rgba(0,0,0,.12);
+  --radius-sm:  8px;
+  --radius-md:  12px;
+  --radius-lg:  16px;
+  --radius-xl:  20px;
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+               "Helvetica Neue", "Arial", sans-serif;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.47059;
+  letter-spacing: -0.022em;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── Map ── */
+#map { width: 100%; height: 40vh; min-height: 280px; position: sticky; top: 0; z-index: 100; }
+.locate-btn {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: rgba(255,255,255,.92); backdrop-filter: blur(8px);
+  border: none; box-shadow: 0 1px 4px rgba(0,0,0,.18);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.locate-btn.active { color: #007aff; }
+@keyframes loc-pulse {
+  0%   { transform: scale(1); opacity: .55; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+.loc-pulse {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: rgba(0,122,255,.25);
+  animation: loc-pulse 1.6s ease-out infinite;
+}
+
+/* ── Tabs ── */
+.tabs {
+  display: flex; gap: 6px; padding: 12px 16px; overflow-x: auto; -webkit-overflow-scrolling: touch;
+  background: rgba(255,255,255,.85); -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px); position: sticky; top: 40vh; z-index: 99;
+  border-bottom: .5px solid var(--separator); scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  flex-shrink: 0; padding: 7px 16px; border-radius: 980px; border: none;
+  background: var(--bg-grouped); color: var(--text-secondary);
+  font-size: 14px; font-weight: 500; cursor: pointer; transition: all .25s ease;
+  white-space: nowrap; letter-spacing: -0.01em;
+}
+.tab:active { transform: scale(.96); }
+.tab.active { background: var(--accent); color: #fff; }
+
+/* ── Main content ── */
+.content { max-width: 680px; margin: 0 auto; padding: 16px 16px calc(24px + var(--safe-bottom)); }
+
+/* ── Overview ── */
+.hero { text-align: center; padding: 28px 20px 20px; }
+.hero h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.15; }
+.hero .subtitle { font-size: 17px; color: var(--text-secondary); margin-top: 6px; font-weight: 400; }
+
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.info-card { background: var(--bg-elevated); border-radius: var(--radius-lg); padding: 16px; box-shadow: var(--shadow-sm); }
+.info-card .label { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .02em; margin-bottom: 6px; }
+.info-card .value { font-size: 15px; font-weight: 600; line-height: 1.4; }
+
+/* ── Section headers ── */
+.section-head { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .03em; padding: 20px 0 8px; }
+
+/* ── Day header ── */
+.day-head { padding: 20px 0 12px; }
+.day-head h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+.day-head p { font-size: 15px; color: var(--text-secondary); margin-top: 2px; }
+
+/* ── Route bar ── */
+.route-bar { background: var(--bg-elevated); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 14px; box-shadow: var(--shadow-sm); font-size: 13px; color: var(--text-secondary); line-height: 1.7; white-space: pre-line; }
+.route-bar strong { color: var(--text-primary); }
+
+/* ── Timeline ── */
+.timeline { position: relative; padding-left: 24px; }
+.timeline::before { content: ''; position: absolute; left: 7px; top: 20px; bottom: 20px; width: 1.5px; background: var(--separator); }
+.tl-item { position: relative; margin-bottom: 10px; }
+.tl-dot { position: absolute; left: -20px; top: 18px; width: 10px; height: 10px; border-radius: 50%; z-index: 1; box-shadow: 0 0 0 3px var(--bg-secondary); }
+.tl-dot.food    { background: var(--tint-red); }
+.tl-dot.spot    { background: var(--tint-blue); }
+.tl-dot.hotel   { background: var(--tint-orange); }
+.tl-dot.drink   { background: var(--tint-purple); }
+.tl-dot.transport { background: var(--text-tertiary); }
+
+/* ── Card ── */
+.card { background: var(--bg-elevated); border-radius: var(--radius-md); padding: 14px 16px; box-shadow: var(--shadow-sm); transition: box-shadow .25s ease; cursor: pointer; }
+.card:active { box-shadow: var(--shadow-md); }
+.card .time { font-size: 12px; font-weight: 600; color: var(--text-tertiary); letter-spacing: .01em; }
+.card .name { font-size: 17px; font-weight: 600; margin: 2px 0 4px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 6px; }
+.card .desc { font-size: 14px; color: var(--text-secondary); line-height: 1.45; }
+
+/* Badge */
+.badge { display: inline-flex; align-items: center; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 4px; }
+.badge.food   { background: rgba(255,59,48,.1);  color: var(--tint-red); }
+.badge.spot   { background: rgba(0,122,255,.1);  color: var(--tint-blue); }
+.badge.drink  { background: rgba(175,82,222,.1); color: var(--tint-purple); }
+
+/* Budget */
+.budget { display: inline-block; margin-top: 6px; padding: 3px 10px; background: var(--bg-grouped); border-radius: var(--radius-sm); font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+
+/* Payment */
+.pays { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+.pay { font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: 600; }
+.pay.ok  { background: rgba(52,199,89,.1);  color: var(--tint-green); }
+.pay.no  { background: rgba(255,59,48,.08); color: var(--tint-red); }
+.pay.idk { background: rgba(255,149,0,.1);  color: var(--tint-orange); }
+
+/* Links row */
+.links { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 8px 14px; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 600; border: none; cursor: pointer;
+  text-decoration: none !important; transition: filter .2s;
+}
+.btn:active { filter: brightness(.9); }
+.btn.nav    { background: var(--accent); color: #fff; }
+.btn.xhs    { background: #ff2442; color: #fff; }
+.btn.dp     { background: #ffa700; color: #fff; }
+.btn.rsv    { background: var(--tint-green); color: #fff; }
+
+/* Action Sheet */
+.as-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,.35); backdrop-filter: blur(2px);
+  display: flex; align-items: flex-end; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .25s;
+}
+.as-overlay.show { opacity: 1; pointer-events: auto; }
+.as-sheet {
+  width: 100%; max-width: 420px;
+  padding: 0 8px 34px;
+  transform: translateY(100%); transition: transform .3s cubic-bezier(.22,1,.36,1);
+}
+.as-overlay.show .as-sheet { transform: translateY(0); }
+.as-group {
+  background: rgba(255,255,255,.88); backdrop-filter: blur(20px);
+  border-radius: 14px; overflow: hidden; margin-bottom: 8px;
+}
+.as-group .as-item {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 16px; font-size: 18px; color: #007aff; font-weight: 500;
+  border: none; background: none; width: 100%; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.as-group .as-item + .as-item { border-top: .5px solid rgba(0,0,0,.12); }
+.as-group .as-item:active { background: rgba(0,0,0,.06); }
+.as-cancel { font-weight: 600; }
+
+/* Details — default open */
+.details {
+  margin-top: 10px; padding-top: 10px;
+  border-top: .5px solid var(--separator);
+  font-size: 13px; color: var(--text-secondary); line-height: 1.6;
+}
+.details.closed { display: none; }
+
+/* ── Overview day list ── */
+.day-list .card { margin-bottom: 8px; }
+.day-list .card .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+
+/* ── Payment summary ── */
+.pay-summary { background: var(--bg-elevated); border-radius: var(--radius-md); padding: 14px 16px; box-shadow: var(--shadow-sm); font-size: 13px; line-height: 1.7; margin-bottom: 10px; }
+.pay-summary h4 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.pay-summary .warn { color: var(--tint-red); }
+.pay-summary .ok-text { color: var(--tint-green); }
+
+/* ── Legend ── */
+.legend { display: flex; gap: 14px; flex-wrap: wrap; padding: 8px 0; font-size: 12px; color: var(--text-secondary); }
+.legend-item { display: flex; align-items: center; gap: 5px; }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* ── Hero eyebrow & section kicker (Golden style) ── */
+.hero .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .14em; color: var(--accent); text-transform: uppercase; margin-bottom: 8px; }
+.kicker { display: block; font-size: 11px; font-weight: 700; letter-spacing: .1em; color: var(--accent); text-transform: uppercase; margin-bottom: 2px; }
+.section-head .cnt { float: right; color: var(--text-tertiary); font-weight: 600; letter-spacing: 0; text-transform: none; }
+
+/* ── Flight boarding-pass carousel ── */
+.flights { display: flex; gap: 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; padding: 4px 0 6px; margin: 0 -4px; scrollbar-width: none; }
+.flights::-webkit-scrollbar { display: none; }
+.fcard { flex: 0 0 84%; max-width: 320px; scroll-snap-align: center; background: var(--bg-elevated); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); padding: 16px 18px 14px; position: relative; border: .5px solid var(--separator); }
+.fcard.ret { background: linear-gradient(180deg, #fffaf0 0%, var(--bg-elevated) 60%); }
+.fcard-top { display: flex; justify-content: space-between; align-items: center; }
+.fcard-tag { font-size: 12px; font-weight: 700; color: var(--accent); letter-spacing: .02em; }
+.fcard-date { font-size: 12px; color: var(--text-secondary); font-weight: 600; }
+.fcard-route { display: flex; align-items: flex-end; justify-content: space-between; margin: 12px 0 2px; }
+.fcol { text-align: left; } .fcol.right { text-align: right; }
+.fcode { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; line-height: 1; }
+.fcity { font-size: 12px; color: var(--text-secondary); margin-top: 3px; font-weight: 600; }
+.fmid { flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0 10px; color: var(--text-tertiary); }
+.fmid .fline { flex: 1; height: 1px; background: repeating-linear-gradient(90deg, var(--text-tertiary) 0 4px, transparent 4px 8px); }
+.fmid .fplane { font-size: 14px; }
+.fvia { font-size: 12px; color: var(--text-secondary); text-align: center; }
+.fperf { border-top: 1.5px dashed var(--separator); margin: 12px -18px; position: relative; }
+.fperf::before, .fperf::after { content: ''; position: absolute; top: -8px; width: 16px; height: 16px; border-radius: 50%; background: var(--bg-secondary); }
+.fperf::before { left: -8px; } .fperf::after { right: -8px; }
+.fcard-bot { display: flex; gap: 20px; }
+.fcard-bot > div { display: flex; flex-direction: column; }
+.flabel { font-size: 10px; color: var(--text-tertiary); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.fval { font-size: 15px; font-weight: 700; margin-top: 1px; }
+.fnote { font-size: 12px; color: var(--text-secondary); line-height: 1.5; margin-top: 10px; }
+
+/* ── To-Do checklist ── */
+.todo-list { display: flex; flex-direction: column; background: var(--bg-elevated); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow: hidden; }
+.todo-row { display: flex; align-items: center; gap: 11px; padding: 12px 15px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.todo-row + .todo-row { border-top: .5px solid var(--separator); }
+.todo-row:active { background: var(--bg-grouped); }
+.todo-row input { width: 20px; height: 20px; accent-color: var(--accent); flex-shrink: 0; cursor: pointer; }
+.todo-row span { font-size: 14px; line-height: 1.4; }
+.todo-row.done span { color: var(--text-tertiary); text-decoration: line-through; }
+
+/* ── Leaflet overrides ── */
+.leaflet-popup-content-wrapper { border-radius: var(--radius-md) !important; box-shadow: var(--shadow-lg) !important; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif !important; }
+.leaflet-popup-content { font-size: 14px !important; line-height: 1.5 !important; margin: 12px 14px !important; }
+.leaflet-popup-content a { color: var(--accent) !important; }
+.leaflet-popup-tip { background: #fff !important; }
+.leaflet-control-zoom a { width: 34px !important; height: 34px !important; line-height: 34px !important; font-size: 16px !important; border-radius: 10px !important; background: rgba(255,255,255,.85) !important; -webkit-backdrop-filter: blur(10px) !important; backdrop-filter: blur(10px) !important; border: .5px solid var(--separator) !important; color: var(--text-primary) !important; }
+.leaflet-control-zoom { border-radius: 12px !important; overflow: hidden; box-shadow: var(--shadow-md) !important; border: none !important; }
+.leaflet-control-attribution { font-size: 9px !important; opacity: .5; }
+</style>
+</head>
+<body>
+
+<div id="map"></div>
+<div class="tabs" id="tabs"></div>
+<div class="content" id="content"></div>
+
+<script>
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  埃及 8 天行程数据（含马特鲁）                                ║
+// ╚══════════════════════════════════════════════════════════════╝
+
+// 多城行程：不使用全局 HOTEL 标记，酒店作为每日 location 呈现
+const HOTEL = { name: '', lat: 0, lng: 0 };
+
+const DAYS = [
+  { id: 0, label: '总览', color: '#0071e3', locations: [] },
+
+  { id: 1, label: 'D1', date: '9/27 周日 · 抵达开罗', title: '落地开罗', color: '#5856d6', locations: [
+    { name: '开罗国际机场 CAI（3 号航站楼）', lat: 30.1219, lng: 31.4056, type: 'transport', time: '21:30',
+      desc: '经上海+曼谷+沙迦中转后抵达。落地 T3 先办签、取行李、买电话卡；按 23:00-23:30 上车准备。',
+      detail: '【T3 到达通关全流程】\n① 下机后先到入境大厅的银行柜台(National Bank of Egypt / Banque Misr)买落地签贴纸，交崭新美元约 25 美元/人(个别柜台报价略高，务必备新钞)；已办 e-Visa 则跳过直接过关\n② 贴纸贴护照 → 排边检 Passport Control 盖章、拍照入境\n③ 取行李 Baggage Claim\n④ 关键：行李大厅内就有 Vodafone/Orange 柜台，先把电话卡买好(出关后不好买)，约 300-500 埃镑\n⑤ 到达厅兑换柜台只换少量埃镑应急(付小费/打车)，汇率一般\n⑥ 出关别跟拉客司机；用 inDrive/Careem 叫车走到指定网约车上客点，或提前订酒店接机(夜间抵达最稳)\n【第 8 版 · 接送缓冲】21:30 落地后按 90-120 分钟上车；落地签、托运行李多时按 150 分钟。接机订单写明 T3 到达层会合点、司机跟航班，免费等候至少 120 分钟。此为计划缓冲，不是机场通关承诺。\n· 备好：护照(有效期≥6个月)、往返机票行程单、酒店订单，个别会查',
+      dianping: false,
+      xhsKeyword: '开罗 T3 落地签 换钱 电话卡',
+      gmap: 'Cairo+International+Airport' },
+    { name: '吉萨金字塔区酒店（1晚）', lat: 29.9862, lng: 31.1379, type: 'hotel', time: '23:00',
+      desc: '住金字塔景观房，推窗即大金字塔，次日开门即入省去奔波。',
+      budget: 'Pyramids Valley约¥400-900 / Mena House约¥2000-3500+（参考）',
+      detail: '【第 6 版 · 最终二选一】\n① Marriott Mena House：参考 ¥2000-3500+/晚。胜在园林、早餐与步行近金字塔，适合把第一晚本身当体验；缺点是溢价高，基础房不保证见塔。\n② Pyramids Valley Boutique Hotel：参考 ¥400-900/晚。胜在屋顶近距离看塔、性价比高；缺点是周边嘈杂、房况和隔音不如连锁。\n建议：想住一次经典选 Mena House；只为次日开门即进+屋顶拍照选 Pyramids Valley。\n【下单前英文确认】\nBefore booking Sep 27, please confirm the exact room category with a guaranteed unobstructed, front-facing Pyramid view—not a side or partial view; the room will be held for arrival after 23:00; and the total airport pickup price and meeting point.\n民宿另要求实际房间窗景视频，并确认热水、电梯和夜间噪声。价格、税费以实时为准。',
+      dianping: false,
+      reserve: 'https://www.booking.com/searchresults.zh-cn.html?ss=Giza+Pyramids+view+hotel',
+      gmap: 'Marriott+Mena+House+Cairo' }
+  ]},
+
+  { id: 2, label: 'D2', date: '9/28 周一 · 开罗→马特鲁', title: '金字塔 + 大埃博 · 夜赴地中海', color: '#ff9500', locations: [
+    { name: '吉萨金字塔群 & 狮身人面像', lat: 29.9792, lng: 31.1342, type: 'spot', time: '08:00',
+      desc: '开门第一批进，避开人潮与高温。三大金字塔 + 狮身人面像，可加购进入胡夫金字塔内部。半天可休闲速刷。',
+      budget: '门票约 ¥140/人 + 内部另购',
+      detail: '小红书要点：\n· 早到：8点第一批进，9点后旅行团+暴晒一起来\n· 骑骆驼/马车：先谈好价、按"整趟"而非"每人/每分钟"，最容易被坑；不想骑就坚定说 No\n· 全景机位：往沙漠方向高地(Panorama Point)可拍全九座\n· 防晒帽、墨镜、2L 水，园区无遮阴\n· 处处有人主动"帮拍照/带路"再要小费，想好了再答应',
+      dianping: false,
+      xhsKeyword: '开罗金字塔 攻略 避坑',
+      gmap: 'Great+Pyramid+of+Giza' },
+    { name: '9 Pyramids Lounge（午餐/拍照）', lat: 29.9730, lng: 31.1290, type: 'food', time: '11:30',
+      desc: '园区内唯一景观餐厅，露台正对九座金字塔。景色一流、出片，出品一般——为风景来，别期待味道。',
+      budget: '两人约 ¥500',
+      detail: '小红书实探结论：\n· 视角绝佳，园区里唯一能坐下看金字塔的地方\n· 食物"照骗"——肉偏柴、饭偏酸，但冰淇淋不错\n· 需提前 2-3 天电话/WhatsApp 订位 +20 121 229 9999\n· 在金字塔园区内，需先买金字塔门票才能到\n· 早餐 9:00-11:30 / 午餐 12:00-16:30',
+      pay: { cash: 1, card: 1 },
+      dianping: false,
+      xhsKeyword: '9 Pyramids Lounge',
+      gmap: '9+Pyramids+Lounge+Giza' },
+    { name: '大埃及博物馆 GEM', lat: 29.9938, lng: 31.1194, type: 'spot', time: '13:00',
+      desc: '2025 全面开放的世界最大考古博物馆，图坦卡蒙黄金面具全套馆藏，距金字塔仅 10 分钟车程。',
+      budget: '门票约 ¥230/人',
+      detail: '· 官网提前购票避免排队：visit-gem.com\n· 顶流打卡：图坦卡蒙完整陪葬品、大阶梯法老巨像\n· 逛 3-4 小时，穿舒适鞋；与解放广场的老埃及博物馆是两家\n· 15:30 必须收尾，为 16:00 出发马特鲁留时间\n【唯一 Plan B】若 GEM 延误，立即删减剩余展厅；若约 16:00 仍无法出发，取消马特鲁并留宿开罗，不冒险深夜长途驾驶。',
+      dianping: false,
+      xhsKeyword: '大埃及博物馆 GEM 攻略',
+      gmap: 'Grand+Egyptian+Museum' },
+    { name: '开罗 → 马特鲁（包车）', lat: 31.3543, lng: 27.2373, type: 'transport', time: '16:00',
+      desc: '傍晚从开罗包车沿沙漠公路北上地中海城市马特鲁，约 5-6 小时，夜宿马特鲁。',
+      budget: '包车往返约 ¥900-1400/车',
+      detail: '【可直接复制给司机】\nPlease quote ONE total price for a private AC car: Cairo–Marsa Matrouh, depart Sep 28 at 16:00, wait overnight, return Sep 29 at 15:00. Is it per car and inclusive of fuel, tolls, checkpoints/permits, waiting and driver hotel/meals? Please confirm car model, luggage, overtime, cancellation and payment time.\n【出发前拿到 5 个证据】\n① 总价+币种(按车不按人) ② 包含/不含项 ③ 两段日期时间与路线 ④ 司机姓名电话+车牌车型照片 ⑤ 取消/超时/付款规则的聊天截图。\n常见坑：只报单程、临时改美元、另收等待/停车/检查站费、现场换小车、强塞购物点。全程约 460km/5-6h；沿途厕所少，带水零食和护照；夜车系安全带。',
+      dianping: false,
+      xhsKeyword: '开罗 马特鲁 包车',
+      gmap: 'Marsa+Matruh' },
+    { name: '马特鲁酒店（1晚）', lat: 31.3543, lng: 27.2373, type: 'hotel', time: '22:00',
+      desc: '住市区海滨或全包度假村，睡一晚次日玩海滩。',
+      budget: 'Beau Site约¥700-1400 / Porto约¥400-900（参考）',
+      detail: '【第 6 版 · 最终二选一】\n① Beau Site / Belle Vue（优先）：参考 ¥700-1400/晚。市区海湾+私人沙滩，晚到早走仍方便；中文用户常提"位置稳、景色好但设施偏旧"。\n② Porto Matrouh（备选）：参考 ¥400-900/晚。房间空间大、度假感更强；但位置偏，部分库存是私人公寓，淡季前台/餐饮/泳池服务更不稳定。\n【下单前英文确认】\nPlease confirm that the hotel will operate normally on Sep 28, with 24-hour reception and late arrival accepted. Are breakfast, the restaurant, private beach, pool and reliable hot water available and included during our stay? What is the latest check-in time?\n优先订可免费取消并保存书面回复；回答含糊直接选 Beau Site 市区店。价格、税费以实时为准。',
+      dianping: false,
+      reserve: 'https://www.booking.com/searchresults.zh-cn.html?ss=Marsa+Matruh+hotel',
+      gmap: 'Marsa+Matruh+hotel' },
+    { name: '备选：哈利利市场 Khan el-Khalili', lat: 30.0477, lng: 31.2622, type: 'spot', time: '—',
+      desc: '千年老巴扎（香料/铜器/纸莎草画）。本行程时间紧，可放到 10/3 回开罗当晚，或干脆舍弃。',
+      detail: '【本轮深化 · 砍价 & 纪念品辨真】\n· 砍价：开价先砍到 3-4 折起谈，装作要走一半概率降价；先笑脸+"La shukran(不用谢谢)"挡开拉客\n· 纸莎草画：真品是植物纤维压制、对光看有横竖交叉纹理、可弯折不裂；街边一撕就破/太便宜的是香蕉叶假货，认准有 Papyrus Institute 印章\n· 香精油：论"图拉(tola)"卖，先闻别急着买，玻璃瓶注意别掺酒精\n· 银器/卡图什名牌：认 800 或 925 纯银钢印，按克称重定价更靠谱\n· 铜盘/灯具好看但重，注意行李额\n· 傍晚来灯火氛围最佳；El Fishawy 百年咖啡馆值得一坐；人多看好随身包、贵重物分开放',
+      dianping: false,
+      xhsKeyword: '哈利利市场 开罗',
+      gmap: 'Khan+el-Khalili+Bazaar' }
+  ]},
+
+  { id: 3, label: 'D3', date: '9/29 周二 · 马特鲁→开罗', title: '地中海果冻海 · 傍晚返开罗', color: '#00c7be', locations: [
+    { name: '阿吉巴海滩 Agiba Beach', lat: 31.3486, lng: 26.9903, type: 'spot', time: '09:00',
+      desc: '马特鲁最出片的悬崖小海湾，"现实版蒂芙尼蓝/果冻海"，市区西约 24km。',
+      budget: '含在包车里',
+      detail: '· Agiba(عجيبة)意为"神奇"，悬崖俯拍最出片，下到小沙滩要走台阶\n· 上午光线好、人少；风大浪急，下水注意安全\n· 崖上有小摊卖饮料，备零钱\n【唯一 Plan B】遇大风、浪高或海况警示就不下水，也不追赶多个海滩；留在酒店休息，按 15:00 原计划返开罗。',
+      dianping: false,
+      xhsKeyword: '马特鲁 阿吉巴海滩 Agiba',
+      gmap: 'Agiba+Beach+Marsa+Matruh' },
+    { name: '克利奥帕特拉海滩 Cleopatra Beach', lat: 31.3607, lng: 27.1978, type: 'spot', time: '11:00',
+      desc: '礁石海蚀地貌，传说埃及艳后沐浴处（Cleopatra Bath），海水清透。',
+      budget: '含在包车里',
+      detail: '· 礁石间的天然"浴池"，浪大时勿靠太近\n· 拍照好看但下水条件一般，主打观景\n· 与阿吉巴顺路，包车串起来玩',
+      dianping: false,
+      xhsKeyword: '马特鲁 克利奥帕特拉海滩',
+      gmap: 'Cleopatra+Beach+Marsa+Matruh' },
+    { name: '隆美尔海滩 & 博物馆 Rommel', lat: 31.3505, lng: 27.2560, type: 'spot', time: '12:30',
+      desc: '二战德军将领隆美尔指挥部所在的海蚀洞，现为小博物馆；旁边海滩平缓适合下水。',
+      budget: '含在包车里',
+      detail: '· 军事迷可看隆美尔洞穴博物馆(门票很便宜)\n· 这一带海滩较平缓，想真正下海玩水选这里或市区海滩\n· 玩到下午 2-3 点收尾，留足返程时间',
+      dianping: false,
+      xhsKeyword: '马特鲁 隆美尔',
+      gmap: 'Rommel+Beach+Marsa+Matruh' },
+    { name: '马特鲁 → 开罗（包车返程）', lat: 30.1219, lng: 31.4056, type: 'transport', time: '15:00',
+      desc: '下午收尾后包车返回开罗，约 5-6 小时，夜宿开罗（近机场或市区，方便次日飞卢克索）。',
+      budget: '含往返包车',
+      detail: '· 约 5-6 小时，晚饭在服务区/车上解决\n· 提示：马特鲁核心玩法就是海滩，约 5h 足够；网上有"只有中国人来/性价比一般"的声音，看的是地中海颜值\n· 今晚回开罗后早点休息，次日一早飞卢克索',
+      dianping: false,
+      gmap: 'Cairo' },
+    { name: '开罗酒店（1晚·近机场）', lat: 30.1120, lng: 31.4020, type: 'hotel', time: '21:30',
+      desc: '住开罗机场附近，方便次日一早的卢克索航班。',
+      detail: '推荐（Booking 可订）：\n· Le Méridien Cairo Airport / Novotel Cairo Airport — 近 T3，早航班友好\n【晚到早走交接】T-24h 让前台书面确认预计到店时间、次日叫醒/送机或步行路线、早餐盒领取点和时间；到店寄存须拿凭条。\n预订：Booking 搜 "Cairo Airport hotel"',
+      dianping: false,
+      reserve: 'https://www.booking.com/searchresults.zh-cn.html?ss=Cairo+Airport+hotel',
+      gmap: 'Le+Meridien+Cairo+Airport' }
+  ]},
+
+  { id: 4, label: 'D4', date: '9/30 周三 · 卢克索', title: '飞卢克索 · 帝王谷 + 神庙', color: '#ff2d55', locations: [
+    { name: '开罗 → 卢克索（早班机）', lat: 30.1219, lng: 31.4056, type: 'transport', time: '07:00',
+      desc: '一早飞卢克索（CAI→LXR），飞行约 1 小时，落地直奔西岸。',
+      budget: '约 ¥450-900/人（含税，参考）',
+      detail: '【第 6 版 · 落地后按小时走（按实际航班顺延）】\n07:00 左右抵达 → 08:15-10:45 帝王谷 → 11:00-12:00 哈特谢普苏特 → 12:10 门农巨像 → 13:00-15:15 酒店午休 → 15:30-16:45 卡尔纳克 → 17:15-19:00 卢克索神庙夜景。\n【机票与行李】EgyptAir / Air Cairo / Nile Air 每日多班；参考 $60-110/人。不要套用通用行李额，必须以实际票价族、电子票与订单页显示为准；出票后截图保存托运/手提额度、改签退票规则。提前 1.5-2 小时到。\n【唯一 Plan B】航班延误时保住飞卢克索本身，删西岸行程；不改成长途陆路追赶，也不压缩午休后硬塞全部景点。',
+      dianping: false,
+      gmap: 'Cairo+International+Airport' },
+    { name: '帝王谷 Valley of the Kings', lat: 25.7402, lng: 32.6014, type: 'spot', time: '08:15',
+      desc: '西岸法老陵墓群，上午最凉爽。基础票含 3 座墓，图坦卡蒙墓、塞提一世墓、拉美西斯六世墓需另购。',
+      budget: '基础票约 ¥110-150/人 + 特窟另购',
+      detail: '小红书"选墓/买票"要点：\n· 基础票任选 3 墓；重点特窟单独收费(参考现场价)：塞提一世 KV17 壁画最惊艳但最贵(约 EGP1400)、图坦卡蒙 KV62(约 EGP360、实物已移 GEM，墓本身较小)、拉美西斯六世 KV9(约 EGP180，性价比高、天花板星图美)\n· 建议先看攻略选好墓，避免踩空人多的；拍照许可另收(约 EGP300)，墓内禁闪光\n· 电瓶车往返入口收小费；这里被称"最尊重小费的地方"，备足 5-10 埃镑零钱\n· 顺路：门农巨像(免费路过拍照)；票价以现场为准',
+      dianping: false,
+      xhsKeyword: '卢克索 帝王谷 选墓 买票',
+      gmap: 'Valley+of+the+Kings+Luxor' },
+    { name: '哈特谢普苏特神庙', lat: 25.7380, lng: 32.6065, type: 'spot', time: '11:00',
+      desc: '嵌在悬崖下的三层女王神庙，气势恢宏，与帝王谷同在西岸顺路。',
+      budget: '门票约 ¥60/人',
+      detail: '· 与帝王谷、门农巨像半天车串起来刷\n· 无遮阴，戴帽带水；中午前收尾回东岸避暑午休',
+      dianping: false,
+      xhsKeyword: '哈特谢普苏特神庙',
+      gmap: 'Mortuary+Temple+of+Hatshepsut' },
+    { name: '门农巨像 Colossi of Memnon', lat: 25.7206, lng: 32.6105, type: 'spot', time: '12:10',
+      desc: '西岸返程顺路免费停 10-15 分钟，拍完即走，不额外占用午休。',
+      budget: '免费',
+      detail: '两尊约 18 米高巨像是阿蒙霍特普三世神庙遗迹。停车点常有人兜售纪念品，不需要就直接说 La shukran。',
+      dianping: false,
+      gmap: 'Colossi+of+Memnon' },
+    { name: '卡尔纳克神庙 Karnak', lat: 25.7188, lng: 32.6573, type: 'spot', time: '15:30',
+      desc: '埃及最大神庙群，134 根巨柱的多柱厅震撼。下午 4 点后光线柔和、不那么晒。',
+      budget: '门票约 ¥100/人',
+      detail: '· 多柱厅逆光剪影是必拍机位\n· 晚上有声光秀(Sound & Light)可选\n· 距卢克索神庙很近',
+      dianping: false,
+      xhsKeyword: '卡尔纳克神庙',
+      gmap: 'Karnak+Temple+Luxor' },
+    { name: '备选：尼罗河风帆船 Felucca 日落', lat: 25.6995, lng: 32.6392, type: 'spot', time: '备选',
+      desc: '只有航班准点且体力充足才安排；否则优先卡尔纳克与卢克索神庙夜景。',
+      budget: '包船约 ¥100-200/小时',
+      detail: '· 码头现谈或酒店代订，先讲好时长与价格\n· 落日+河风，慢下来的卢克索\n· 也可河东岸 Corniche 散步吃晚饭',
+      dianping: false,
+      xhsKeyword: '卢克索 尼罗河 帆船',
+      gmap: 'Luxor+Temple+Corniche' },
+    { name: '卢克索神庙（夜景）', lat: 25.6995, lng: 32.6392, type: 'spot', time: '17:15',
+      desc: '市中心神庙，夜晚打灯后的狮身大道与方尖碑格外壮观，就在河边晚饭旁。',
+      budget: '门票约 ¥80/人',
+      detail: '· 白天太晒，晚上打灯观感最好\n· 门口即尼罗河东岸餐厅街',
+      dianping: false,
+      xhsKeyword: '卢克索神庙 夜景',
+      gmap: 'Luxor+Temple' },
+    { name: '卢克索酒店（1晚·尼罗河景）', lat: 25.6968, lng: 32.6386, type: 'hotel', time: '22:00',
+      desc: '住东岸尼罗河畔，靠近神庙与次日热气球集合点。',
+      budget: 'Nile Palace约¥600-1100 / Winter Palace约¥1500+（参考）',
+      detail: '【第 6 版 · 按本行程排序】\n① Steigenberger Nile Palace（最推荐）：参考 ¥600-1100/晚。东岸位置、河景与价格最均衡，晚间去卢克索神庙方便。\n② Sofitel Winter Palace：参考 ¥1500+/晚。历史氛围最强、步行到卢克索神庙；经典体验必须订 Palace Wing。\n③ Hilton Luxor：参考 ¥900-1600/晚。泳池河景最好、近卡尔纳克，适合泡酒店；只住一晚性价比不如 Nile Palace。\n【下单前英文确认】\nPlease confirm a guaranteed front Nile-view room category—not a side or partial view; access for our 04:30 balloon pickup; a breakfast box if we leave before breakfast; early luggage drop and luggage storage after checkout.\n价格、税费以实时为准，优先可免费取消。',
+      dianping: false,
+      reserve: 'https://www.booking.com/searchresults.zh-cn.html?ss=Luxor+Nile+view+hotel',
+      gmap: 'Sofitel+Winter+Palace+Luxor' }
+  ]},
+
+  { id: 5, label: 'D5', date: '10/1 周四 · 卢克索→红海', title: '热气球日出 · 转场赫尔格达', color: '#af52de', locations: [
+    { name: '卢克索热气球日出', lat: 25.7220, lng: 32.6100, type: 'spot', time: '04:30',
+      desc: '04:30 左右接人，约 05:30 升空、07:30 回酒店，俯瞰帝王谷与尼罗河晨曦。',
+      budget: '约 ¥300-500/人',
+      detail: '· 认准正规大公司(Sindbad / Magic Horizon 等)，订含酒店接送，问清税费、录像/证书等是否另收\n· 写清因天气/风力取消是全额退款还是改期；本日 10:00 要离开卢克索，不接受押后到次日\n· T-72h 核运营商/接送点/退款；T-24h 核天气与最终接人时间；当天必须收到明确 go / no-go，再离开酒店\n· 若取消：直接回酒店吃早餐休息，不再硬塞景点；08:00 早餐、09:15 退房，行李前一晚整理好',
+      dianping: false,
+      xhsKeyword: '卢克索热气球',
+      reserve: 'https://www.getyourguide.com/luxor-l3737/luxor-hot-air-balloon-tc55/',
+      gmap: 'Luxor+Hot+Air+Balloon+Ride' },
+    { name: '卢克索 → 赫尔格达（包车）', lat: 27.1783, lng: 33.7994, type: 'transport', time: '10:00',
+      desc: '热气球后退房，包车前往红海赫尔格达；按 4.5–6 小时含检查站与休息，下午只办入住。',
+      budget: '包车约 ¥400-600/车',
+      detail: '· 09:15 退房，09:30 在大堂会合清点行李，10:00 发车；按 14:30-16:00 抵达准备，不接下午固定活动\n· 酒店或当地社代订私家空调车，比拼车舒适；确认按车总价、车型/行李、油费路桥/检查站、途中一次休息均包含\n· 出发前核对司机姓名、电话、车牌/车型照片和目的酒店；装车后拍照记件数，付款尽量到达后结清\n· 若中途换车，只在两名司机同时在场时逐件交接；也有 GoBus 大巴，但本行程热气球后直接包车最省体力',
+      dianping: false,
+      gmap: 'Hurghada' },
+    { name: '赫尔格达红海度假村（2晚·全包）', lat: 27.2400, lng: 33.8300, type: 'hotel', time: '15:00',
+      desc: '选带私人海滩 + 泳池的 All-Inclusive 度假村，纯放松泡两晚。',
+      budget: '终选全包约¥1200-2300/晚（参考）',
+      detail: '【第 6 版 · 2 人情侣向排序】\n① Steigenberger Al Dau Beach（最推荐）：参考 ¥1500-2300/晚全包，距机场约 6km；园林、长沙滩与餐饮综合最稳。\n② Baron Palace Sahl Hasheesh：参考 ¥1300-2200/晚；更安静，但去机场、市区与码头更远。\n③ Pickalbatros White Beach：参考 ¥1200-2000/晚；设施新且热闹，二人度假安静度略逊。\n【下单前英文确认】\nPlease itemize what the all-inclusive plan covers: meals, soft drinks and alcohol brands; which à-la-carte restaurants are included and whether reservations or fees apply; beach and house-reef access with lifeguard hours; Orange Bay pickup; and late-checkout time and fee.\n不要默认三家都有强 house reef；价格、税费以实时为准。',
+      dianping: false,
+      reserve: 'https://www.booking.com/searchresults.zh-cn.html?ss=Hurghada+all+inclusive+beach+resort',
+      gmap: 'Hurghada+beach+resort' }
+  ]},
+
+  { id: 6, label: 'D6', date: '10/2 周五 · 赫尔格达', title: '红海出海浮潜一日游', color: '#34c759', locations: [
+    { name: 'Orange Bay / 吉夫顿岛 出海浮潜', lat: 27.1930, lng: 33.9500, type: 'spot', time: '08:00',
+      desc: '红海经典一日游：白沙岛+珊瑚礁浮潜；选择时看时长、岛数、浮潜次数与保险，不只看低价。',
+      budget: '约 ¥130-800/人（历史参考，以当日同条件报价为准）',
+      detail: '【Orange Bay vs 吉夫顿岛】\n· Orange Bay：浅滩更出片，但人多偏商业，浮潜一般\n· 吉夫顿岛：珊瑚与鱼群更好，正规团含保护区安排；建议选两者结合的一日团\n【安全、保险与携带】\n· 只选可在 CDWS 名录核验的运营商；索要责任险有效期、承保活动、船名和人数。运营商责任险不替代个人旅行险\n· 个人保单明确含浮潜/船游、境外医疗、搜救撤离与遗体运返；体验水肺另核潜水事故险、资质与深度限制\n· 全程穿救生衣，不深潜、不远离船；不会游泳就选明确有教练陪同的团，先试面镜是否漏水并记住求助手势\n· 提前确认酒店接送、保护区费、午餐、装备、岛数、浮潜次数、返程时间和额外费用\n· 防水手机袋、珊瑚友好防晒、晕船药提前 30 分钟吃、合身面镜、大浴巾和长袖泳衣\n【公开小红书个体体验】不会游泳者穿救生衣、跟教练救生圈可完成浮潜；面镜漏水和听不懂指令是主要慌张点。价格不能脱离时长和项目数单独比较。\n【唯一 Plan B】若因大风或海况取消，不改订小船硬出海；全天留在度假村泳池、私滩或 SPA。',
+      dianping: false,
+      xhsKeyword: '赫尔格达 出海 浮潜',
+      reserve: 'https://www.klook.com/zh-CN/search/?query=Hurghada%20Orange%20Bay',
+      gmap: 'Orange+Bay+Island+Hurghada' },
+    { name: '赫尔格达码头 Marina（晚餐/散步）', lat: 27.2280, lng: 33.8480, type: 'food', time: '19:00',
+      desc: '游艇码头一带餐厅酒吧集中，海鲜为主，夜景灯光不错。',
+      budget: '两人约 ¥200-350',
+      detail: '· 海鲜按重量点，先确认单价再下单\n· 码头氛围热闹，适合饭后散步吹海风\n· 埃及餐厅多收 12% 服务费，另给小费',
+      pay: { cash: 1, card: 0.5 },
+      dianping: false,
+      xhsKeyword: '赫尔格达 美食',
+      gmap: 'Hurghada+Marina' },
+    { name: '备选：沙漠越野 / 体验深潜', lat: 27.1500, lng: 33.9000, type: 'spot', time: '—',
+      desc: '傍晚 ATV 沙漠越野看日落+贝都因晚餐；或红海体验深潜(Discover Scuba)。爱刺激可选。',
+      budget: '越野¥150-250 / 深潜¥280起',
+      detail: '· 越野：傍晚出发避高温，带头巾墨镜口罩，认准正规团买保险\n· 深潜：红海世界级潜点，认准有资质潜店与教练，感冒不下水',
+      dianping: false,
+      xhsKeyword: '赫尔格达 沙漠越野 深潜',
+      gmap: 'Hurghada+desert+safari' }
+  ]},
+
+  { id: 7, label: 'D7', date: '10/3 周六 · 红海→开罗', title: '飞回开罗 · 机场过夜', color: '#5ac8fa', locations: [
+    { name: '赫尔格达 → 开罗（航班）', lat: 27.1783, lng: 33.7994, type: 'transport', time: '午后',
+      desc: 'HRG→CAI 飞行约 1 小时。选午后航班，上午还能在海边泡一会。',
+      budget: '约 ¥380-800/人',
+      detail: '· EgyptAir / Air Cairo / Nile Air 每日多班；优先航司直购、可改签且不晚于午后的航班\n· 行李额以实际票价族、电子票和订单页为准，出票后保存截图\n· 关键：把 10/4 国际返程压力提前一天化解，今天务必回到开罗\n【唯一 Plan B】若航班取消或确认将严重延误，白天改乘有牌照的私人车直达开罗，删除当晚开罗观光；不等次日候补，也不安排夜间长途驾驶。',
+      dianping: false,
+      gmap: 'Hurghada+International+Airport' },
+    { name: '开罗机场酒店（1晚）', lat: 30.1120, lng: 31.4020, type: 'hotel', time: '傍晚',
+      desc: '住机场旁酒店，次日返程零压力。若想补逛哈利利市场，可今晚前往（车程约 40 分钟）。',
+      detail: '推荐（Booking 可订）：\n· Le Méridien Cairo Airport — 与航站楼连廊步行可达\n· TIBA Hotel / Novotel Cairo Airport — 平价近机场\n预订：Booking 搜 "Cairo Airport hotel"',
+      dianping: false,
+      reserve: 'https://www.booking.com/searchresults.zh-cn.html?ss=Cairo+Airport+hotel',
+      gmap: 'Le+Meridien+Cairo+Airport' }
+  ]},
+
+  { id: 8, label: 'D8', date: '10/4 周日 · 返程', title: '开罗 14:15 CA830 直飞北京', color: '#8e8e93', locations: [
+    { name: '开罗国际机场 CAI（3 号航站楼 · 返程）', lat: 30.1219, lng: 31.4056, type: 'transport', time: '11:00',
+      desc: 'CA830 14:15 从 CAI 3 号航站楼直飞北京首都 PEK T3，10/5 05:00 抵达。建议提前 3 小时到，11:00 前值机最稳。',
+      detail: '· 直飞航班(国航 CA830)，约 10-11 小时，落地北京次日凌晨\n· 提前 3 小时到，埃及机场排队+安检慢，认准 3 号航站楼\n· 退税：买了纪念品可在机场办 VAT 退税\n· 剩余埃镑机场花掉/换回，埃镑出境后难兑\n· 直飞无中转，行李直挂北京即可',
+      dianping: false,
+      gmap: 'Cairo+International+Airport' }
+  ]}
+];
+
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  总览页内容                                                  ║
+// ╚══════════════════════════════════════════════════════════════╝
+
+function overviewContent() {
+  return `
+<div class="hero"><div class="eyebrow">Egypt · 中秋国庆 2026</div><h1>埃及 8 天</h1><p class="subtitle">开罗 · 马特鲁地中海 · 卢克索 · 红海赫尔格达</p><p class="subtitle" style="font-size:12px;color:var(--text-tertiary);margin-top:8px">自动迭代 · 最后更新 2026-09-23 10:00（第 8 版：最终比价、接送缓冲、现金证件分装、票务与活动保险）</p></div>
+
+<div class="section-head"><span class="kicker">Boarding</span>航班行程</div>
+<div class="flights">${FLIGHTS.map(fcard).join('')}</div>
+
+<div class="info-grid">
+  <div class="info-card"><div class="label">国际航班</div><div class="value">去 9/26 北京→上海→曼谷，9/27 沙迦→开罗 21:30 抵达<br>返 10/4 14:15 CA830 开罗(CAI T3)直飞北京，10/5 05:00 抵 PEK</div></div>
+  <div class="info-card"><div class="label">内陆 & 包车</div><div class="value">9/28 晚 & 9/29 开罗↔马特鲁包车<br>9/30 早 开罗→卢克索；10/1 卢克索→赫尔格达包车；10/3 午后 赫→开罗</div></div>
+  <div class="info-card"><div class="label">签证</div><div class="value">普通护照：e-Visa 提前办(visa2egypt.gov.eg)<br>或落地签 25 美元(开罗 T3)</div></div>
+  <div class="info-card"><div class="label">预估费用</div><div class="value">两人约 ¥3–4 万<br>（含马特鲁包车，不含北京往返大交通）</div></div>
+</div>
+
+<div class="section-head"><span class="kicker">Book now</span>预订优先级与截止节点</div>
+<div class="pay-summary">
+  <h4>今天锁定：航班、酒店、三项核心交通</h4>
+  ① 核对全部国际航段；购买 CAI→LXR、HRG→CAI；锁定四城酒店。<br>
+  ② 同日确认开罗↔马特鲁跨夜包车、卢克索→赫尔格达包车、卢克索热气球。<br>
+  ③ 24 小时内确认卢克索西岸车和 Orange Bay / 吉夫顿岛团；普通市内打车可现场叫。<br>
+  优先航司直购、酒店可免费取消；保存含税总价、取消截止时间、行李额与服务范围截图。
+</div>
+
+<div class="section-head"><span class="kicker">Acceptance</span>下单后订单验收</div>
+<div class="pay-summary">
+  <h4>付款成功不等于预订信息正确</h4>
+  逐单核对：护照拼音姓名、酒店分店/地址/电话、入住退房日期与晚数、2 人入住、房型/床型/景观、早餐及供应时段、含税总价与币种、预付/到付、押金、免费取消与未入住截止时间。<br>
+  景观房、晚到保留、淡季设施、早餐盒、寄存与接送都必须拿到<strong>酒店具名书面回复</strong>；订单页、付款凭证和回复截图一起离线保存。
+</div>
+
+<div class="section-head"><span class="kicker">Final price</span>酒店最终付款页比价</div>
+<div class="pay-summary">
+  <h4>不比搜索页低价，只比同条件最终总价</h4>
+  同一时间打开酒店官网与 2 家 OTA，统一日期、2 人、同一房型/景观、床型、餐标和取消档；只记录最后付款页的<strong>含税总价、币种、税费/服务费、押金</strong>。免费取消要抄下埃及当地时间的具体截止时刻。<br>
+  到付若按入住日汇率把 USD / EUR 折成 EGP，并不等于锁价；刷卡拒绝 DCC，预付则核对扣款方、退款币种和到账周期。动态库存无法提前给出可靠终价，下单当天截图决策。马特鲁未书面确认营业、餐厅/早餐、私滩/泳池、热水和晚到入住前，<strong>不买不可退价</strong>。
+</div>
+
+<div class="section-head"><span class="kicker">Buffers</span>接送与转场缓冲</div>
+<div class="pay-summary">
+  <h4>所有缓冲都是计划值，不是机场承诺</h4>
+  · <strong>CAI 21:30 抵达</strong>：按落地后 90–120 分钟上车；司机须跟航班、写明 T3 到达层会合点，免费等候至少 120 分钟。落地签、托运行李多时按 150 分钟准备。<br>
+  · <strong>CAI→LXR</strong>：按票面航站楼，起飞前 2 小时抵达；柜台与托运截止只认航司订单/通知。<br>
+  · <strong>LXR→HRG</strong>：出发前 30 分钟在大堂逐件清点行李并核司机、车牌和目的酒店；路上按 4.5–6 小时含检查站/休息，不把下午固定活动接在车程后。换车时必须两名司机同时在场逐件交接。
+</div>
+
+<div class="section-head"><span class="kicker">Split & backup</span>现金与证件分装</div>
+<div class="pay-summary">
+  <h4>两人分开带，任何一个包丢失都能继续走</h4>
+  A 随身包装护照原件、当日现金、主卡；B 随身包装备用卡、第二份现金和护照复印件。大额美元/欧元、埃镑零钱、银行卡分别放置，不集中在一个钱包、托运行李或酒店保险箱。<br>
+  两台手机各存加密离线副本，国内联系人另留应急副本；公开网页和共享文档只写流程，<strong>不写票号、订单号、预订码和证件号码</strong>。
+</div>
+
+<div class="section-head"><span class="kicker">Official tickets</span>官方购票与红海活动保险</div>
+<div class="pay-summary">
+  <h4>景点票与海上活动分开核验</h4>
+  金字塔、卡尔纳克、帝王谷等优先从 <a href="https://egymonuments.com" target="_blank">埃及官方景点票务</a>进入对应页面；金字塔高原门票与金字塔内部票分开，帝王谷基础墓与特窟分开。二维码离线截图并备纸质件，入口核对日期与票种；GEM 仍走 <a href="https://visit-gem.com" target="_blank">visit-gem.com</a>。<br>
+  红海团只选可在 <a href="https://www.cdws.travel" target="_blank">CDWS</a>名录核验的运营商，并看其责任险有效期、承保活动、船名/人数；运营商责任险<strong>不能替代个人旅行险</strong>。个人保单须明确涵盖浮潜/船游、境外医疗、搜救撤离和遗体运返；体验水肺另核潜水事故险及深度限制。
+</div>
+
+<div class="section-head"><span class="kicker">Public XHS</span>公开小红书核验（个体体验）</div>
+<div class="pay-summary">
+  <h4>本轮已逐页打开正文，只取能帮助下单的信号</h4>
+  · <a href="https://www.xiaohongshu.com/explore/6919bc540000000004003c7c" target="_blank">Mena House</a>：园林、服务与早餐获肯定，房间偏旧；婚礼音乐可能影响睡眠，下单前增问活动/婚礼噪声。<br>
+  · <a href="https://www.xiaohongshu.com/explore/68dfce6500000000040145f8" target="_blank">Belle Vue</a>：海景与干净度反馈正面；去 Agiba 等海滩仍需打车/包车，笔记价格仅为当时个体样本。<br>
+  · <a href="https://www.xiaohongshu.com/explore/6a8432420000000025002030" target="_blank">Nile Palace</a>：房间、床品、河边泳池和餐厅评价较好，早餐中式选择少。<br>
+  · <a href="https://www.xiaohongshu.com/explore/67daf6280000000009015cd5" target="_blank">Al Dau</a>：全包内容和设施反馈较好，特色餐厅最好入住即预约，娱乐更偏躺平。<br>
+  · <a href="https://www.xiaohongshu.com/explore/69e8b613000000001a02d498" target="_blank">不会游泳浮潜</a>：救生衣、合身面镜、教练手势、大浴巾和长袖泳衣最实用；团价必须同时比较时长、岛数、浮潜次数、餐食和额外费用。以上均非官方承诺，价格与服务须二次确认。
+</div>
+
+<div class="section-head"><span class="kicker">Reconfirm</span>T-72h / T-24h / 当天确认表</div>
+<div class="pay-summary">
+  <h4>把每一段服务确认到具体人和具体时间</h4>
+  · <strong>T-72h</strong>：逐段核航班、航站楼与实际票价行李额；酒店确认晚到不按 no-show 释放；包车/热气球确认运营商、接送点、人数、行李与取消规则。<br>
+  · <strong>T-24h</strong>：查航班状态并值机；酒店确认前台时段、寄存与早餐盒；司机发姓名、电话、车牌/车型；热气球确认天气、最终接人时间与停飞退款。<br>
+  · <strong>当天</strong>：复查航班状态/登机口；接送双方共享实时定位；热气球取得明确 <em>go / no-go</em>。已核实：Air Arabia 网上值机通常提前 48 小时开放，机场柜台通常在起飞前 1 小时关闭，仍以订单和机场通知为准。
+</div>
+
+<div class="section-head"><span class="kicker">Through baggage</span>联程行李与转机现场核验</div>
+<div class="pay-summary">
+  <h4>同一票号或 PNR 不等于自动直挂</h4>
+  · PEK / PVG 值机问：<em>Is my baggage checked and tagged through to CAI? Are all onward boarding passes issued? Who rebooks me if I misconnect?</em><br>
+  · BKK 问：<em>Must I clear immigration, collect and recheck my baggage? Please check Timatic for my Chinese passport.</em><br>
+  · SHJ 问：<em>Will my bag transfer airside to CAI, or must I enter the UAE and recheck? Do I need any entry or transit visa?</em><br>
+  亲眼确认行李条终点写 <strong>CAI</strong> 并留存行李联；内陆航班行李额只认实际票价族、电子票和订单页，不套用航司通用额度。
+</div>
+
+<div class="section-head"><span class="kicker">Day by day</span>行程概览</div>
+<div class="day-list">${DAYS.slice(1).map(d=>`<div class="card" onclick="go(${d.id})"><div class="name"><span class="dot" style="background:${d.color}"></span>${d.label} · ${d.title}</div><div class="desc">${d.date}</div></div>`).join('')}</div>
+
+<div class="section-head">节奏提示（重要）</div>
+<div class="pay-summary">
+  <h4 class="warn">马特鲁往返是两段长途夜车</h4>
+  已按你的要求加回马特鲁：<strong>9/28 晚从开罗出发、9/29 傍晚返回</strong>，海滩约 5 小时够玩。但注意：开罗↔马特鲁单程 5-6 小时，<strong>9/28 是"金字塔+博物馆+夜车"、9/29 是"玩海+夜车回开罗+次日早班机飞卢克索"</strong>，连着两天比较累。请确保包车司机靠谱、系安全带；10 月为淡季，<span class="warn">马特鲁海滨度假村多数关门，订酒店前务必确认营业</span>。
+</div>
+
+<div class="section-head"><span class="kicker">Plan B</span>关键天气与延误兜底</div>
+<div class="pay-summary">
+  <h4>每种风险只保留一个最安全方案</h4>
+  · <strong>9/28 GEM 拖延</strong>：删展厅；约 16:00 仍走不了就取消马特鲁，留开罗。<br>
+  · <strong>9/29 海况差</strong>：不下水，酒店休息，15:00 照常返程。<br>
+  · <strong>9/30 内陆航班延误</strong>：保航班、删西岸，不改长途陆路追赶。<br>
+  · <strong>10/1 热气球取消</strong>：退款后按时去赫尔格达，不改次日。<br>
+  · <strong>10/2 红海大风</strong>：取消出海，改度假村泳池 / 私滩 / SPA。<br>
+  · <strong>10/3 HRG→CAI 取消或严重延误</strong>：白天持牌包车直达开罗，删当晚观光，不等次日候补、不夜驾。
+</div>
+
+<div class="section-head">签证 & 入境</div>
+<div class="pay-summary">
+  <h4>🛂 两种签证都可以</h4>
+  ① <span class="ok-text">e-Visa（推荐）</span>：出发前在 <a href="https://visa2egypt.gov.eg" target="_blank">visa2egypt.gov.eg</a> 申请，约 25 美元，批下来打印带着最稳；<br>
+  ② 落地签：开罗 T3 现场办，25 美元现金。2026/8 起改数字落地签(自助机/App)，纸质签过渡期仍有效。<br>
+  备好：护照(有效期≥6个月)、往返机票行程单、酒店订单、少量美金现金。
+</div>
+
+<div class="section-head">支付 & 现金</div>
+<div class="pay-summary">
+  <h4>💴 现金为王 · 小费文化</h4>
+  行李、导游、司机、厕所、"帮拍照"都要小费，随身备足<strong>小面额埃镑</strong>(1/5/10)。<span class="warn">支付宝、微信基本不可用。</span>打车用 inDrive / Careem / Uber 防被坑。
+</div>
+<div class="pay-summary">
+  <h4>💳 刷卡 & 换汇</h4>
+  大酒店、GEM、正规商场可刷 <span class="ok-text">Visa/Master</span>；市场小店、小费只收现金。带美金到当地 ATM/酒店换埃镑，机场只换少量。
+</div>
+
+<div class="section-head"><span class="kicker">Getting around</span>打车 & 内陆交通实操</div>
+<div class="pay-summary">
+  <h4>🚕 inDrive / Careem 怎么用最省心</h4>
+  · <strong>inDrive</strong>：自己出价、司机抢单，最能防坑，市区短途出价 50-120 埃镑试；<strong>Careem / Uber</strong>：固定报价、省心。<br>
+  · 落地机场用 App 叫车要走到<strong>指定网约车上客点</strong>，别在到达口跟拉客司机走；夜间/机场有合理加价。<br>
+  · 现金付车费也 OK，备好小面额埃镑；上车再核对 App 里的车牌。
+</div>
+<div class="pay-summary">
+  <h4>✈️🚗 内陆机票 & 城际包车价位（参考）</h4>
+  · 内陆航班 CAI↔LXR、HRG→CAI 单程含税约 <strong>$60-110/人(≈¥450-800)</strong>，提前 2-4 周官网出票更便宜；Air Cairo 廉航看清行李额。<br>
+  · 开罗↔马特鲁往返包车约 <strong>¥900-1400/车</strong>(含等待)，建议往返同一司机、存 WhatsApp、发车前拍车牌。<br>
+  · 卢克索西岸半天包车(帝王谷+哈特谢普苏特+门农巨像)约 <strong>¥150-300/车</strong>；卢→赫尔格达包车约 ¥400-600/车、按 4.5-6h 计划。
+</div>
+<div class="pay-summary">
+  <h4>📋 卢克索西岸包车：直接复制给司机</h4>
+  <em>Please quote the total price per car, not per person, for Valley of the Kings–Hatshepsut Temple–Colossi of Memnon. AC car, waiting and parking included; tickets/guide excluded; no shopping stops. Confirm pickup time, total hours, overtime and payment time.</em><br>
+  · 出发前必须拿到：总价币种、包含/不含、路线时长、司机姓名电话+车牌车型照片、取消/超时/付款规则。<br>
+  · 警惕只报单程、临时改美元、等待/停车/检查站另收费、换小车和强塞购物点。
+</div>
+
+<div class="section-head"><span class="kicker">Final shortlist</span>酒店终选建议（2 人舒适版）</div>
+<div class="pay-summary">
+  <h4>🏨 先按这一组查实时价</h4>
+  · <strong>吉萨</strong>：体验优先 Mena House；性价比 Pyramids Valley，民宿先要实际窗景视频。<br>
+  · <strong>马特鲁</strong>：优先 Beau Site / Belle Vue；Porto 只作备选，必须书面确认淡季前台、餐厅、泳池、私滩、热水均开放。<br>
+  · <strong>卢克索</strong>：本行程首选 Steigenberger Nile Palace；历史感选 Winter Palace；纯泡酒店选 Hilton。<br>
+  · <strong>赫尔格达</strong>：情侣综合首选 Steigenberger Al Dau；更安静选 Baron Palace；White Beach 更偏亲子。<br>
+  · 每家酒店卡片已附下单前英文确认模板；所有价格以实时含税价为准，优先可免费取消。<br>
+  · 第 8 版已逐页打开 4 家酒店公开小红书正文：Mena House 重点核婚礼噪声，Belle Vue 核淡季营业和交通，Nile Palace 核餐食偏好，Al Dau 入住即约特色餐厅。均为个体体验，不替代酒店当前书面承诺。
+</div>
+
+<div class="section-head"><span class="kicker">Eat like a local</span>埃及美食必吃 & 各城餐厅</div>
+<div class="pay-summary">
+  <h4>🍽️ 必吃当地菜（价格参考，以现场为准）</h4>
+  · <strong>Koshari 库莎丽</strong>：米+通心粉+扁豆+炸洋葱+番茄辣酱，埃及国民快餐，¥8-25/份<br>
+  · <strong>Ful & Ta'meya</strong>：蚕豆糊 + 埃及版 falafel，经典早餐<br>
+  · <strong>Kofta / Kebab / 烤鸽子 Hamam</strong>：碳烤肉；<strong>Molokhia</strong> 埃及绿叶浓汤；<strong>Mahshi</strong> 酿蔬菜<br>
+  · <strong>Feteer</strong> 埃及千层饼、<strong>Om Ali</strong> 牛奶坚果甜点收尾<br>
+  · 喝：Karkade 洛神花茶(冷热皆有)、鲜榨芒果/甘蔗汁、薄荷柠檬
+</div>
+<div class="pay-summary">
+  <h4>📍 各城餐厅（口碑参考）</h4>
+  · <strong>开罗</strong>：Koshary Abou Tarek(库莎丽名店,便宜)、Abou El Sid(Zamalek 传统埃及菜,氛围好 ¥100-200/人)、Felfela(游客友好本地菜)、哈利利市场 Naguib Mahfouz Cafe / El Fishawy 百年咖啡馆<br>
+  · <strong>卢克索</strong>：<strong>Sofra</strong>(老宅传统埃及餐,常年口碑第一 ¥60-120/人)、Al-Sahaby Lane、冬宫 1886 Restaurant(高级法餐需正装)<br>
+  · <strong>赫尔格达</strong>：Marina 一带海鲜、Star Fish(海鲜)、White Elephant(泰餐)；海鲜按重量先确认单价<br>
+  · <strong>马特鲁</strong>：选项少，以酒店餐 + 市区海鲜小馆为主
+</div>
+
+<div class="section-head"><span class="kicker">Tipping</span>小费速查表（贝克希什 Baksheesh）</div>
+<div class="pay-summary">
+  <h4>💵 各场景给多少（埃镑 EGP）</h4>
+  · 酒店行李员：20-50 / 次　　· 客房清洁：20-50 / 天<br>
+  · 餐厅：账单已含 12% 服务费，再给 5-10%<br>
+  · 司机(半天/全天)：50-200　　· 导游：100-300 / 天<br>
+  · 厕所：5-10　　· 帮拍照/带路/骑骆驼：<span class="warn">务必事先谈价</span><br>
+  随身多备 5/10/20 面额零钱，别指望对方找零。
+</div>
+
+<div class="section-head"><span class="kicker">Stay connected</span>电话卡 & 网络</div>
+<div class="pay-summary">
+  <h4>📶 运营商 & eSIM</h4>
+  · 三大运营商 <strong>Vodafone / Orange / Etisalat(We)</strong>，游客卡约 <strong>200-500 埃镑含 10-30GB</strong>；Orange/Vodafone 覆盖最广，红海/景区信号好<br>
+  · 机场柜台或市区营业厅购买，<strong>需护照实名</strong>；也可提前买 <strong>eSIM(Airalo/Holafly)</strong> 落地即用免排队，价略高<br>
+  · 提醒：埃及对入境手机+本地卡有登记规定且时有变动，短期游客一般无碍；不放心可用 eSIM / 国际漫游规避。酒店 WiFi 普遍偏慢。
+</div>
+
+<div class="section-head"><span class="kicker">Money</span>换汇细节</div>
+<div class="pay-summary">
+  <h4>💱 埃镑波动大 · 带新版美金</h4>
+  · 近年埃镑大幅贬值、汇率波动大（参考 1 USD≈48-50 EGP、1 EGP≈¥0.14-0.15，<strong>以实时为准</strong>）<br>
+  · 带 <strong>2013 年后新版、无涂写破损的美金</strong>，旧版/污损拒收；机场只换少量应急<br>
+  · 大额去银行 / 酒店 / 正规兑换点；ATM 可取现(认 Visa/Master，每笔有手续费)；<span class="warn">别在街头黑市换</span><br>
+  · 离境前花掉/换回埃镑，出境后难兑换
+</div>
+
+<div class="section-head"><span class="kicker">Stay well</span>健康 · 安全 · 天气</div>
+<div class="pay-summary">
+  <h4>🩺 只喝瓶装水 · 护好肠胃</h4>
+  · <strong>只喝瓶装水</strong>(刷牙也用)，慎食街边生冷/沙拉/带冰饮品；备<strong>止泻药+益生菌+电解质</strong><br>
+  · 10 月天气：开罗/卢克索白天 30-35℃、早晚转凉；红海适合下水；地中海马特鲁更凉，带件薄外套<br>
+  · 防晒 SPF50+、帽子墨镜；景区暴晒少遮阴，随身 2L 水<br>
+  · 女生偏保守宽松着装、备披肩(清真寺/神庙)；贵重物品随身，人多看包；夜间打车用 App、发定位给同伴
+</div>
+
+<div class="section-head"><span class="kicker">Timing & shots</span>景点开放时间 & 最佳时段 & 拍照机位速查</div>
+<div class="pay-summary">
+  <h4>⏰ 开放时间（参考，以现场为准）· 🕐 最佳时段 · 📸 机位</h4>
+  · <strong>吉萨金字塔</strong>：约 08:00-17:00｜最佳一早开门(避晒避人潮，骑骆驼光线好)｜机位：西南 Panorama Point 可拍全三座+骆驼剪影，狮身人面像正面广场<br>
+  · <strong>大埃及博物馆 GEM</strong>：约 09:00-18:00(需提前网上订票)｜上午人少｜机位：入口拉美西斯二世巨像、大阶梯法老雕像长廊<br>
+  · <strong>帝王谷</strong>：约 06:00-17:00｜最佳一开门(正午墓室闷热人多)｜图坦卡蒙/塞提一世/拉美西斯六世为特窟另收费；墓内禁闪光、多数禁拍(可买相机票)<br>
+  · <strong>哈特谢普苏特神庙</strong>：约 06:00-17:00｜清晨顺光、崖壁金色最出片<br>
+  · <strong>卡尔纳克神庙</strong>：约 06:00-17:30｜清晨或黄昏；夜间有声光秀｜机位：大柱厅立柱逆光剪影<br>
+  · <strong>卢克索神庙</strong>：约 06:00-22:00｜<strong>夜晚亮灯最美</strong>，晚饭后散步来｜机位：斯芬克斯大道、方尖碑灯光<br>
+  · <strong>马特鲁 Agiba/Cleopatra 海滩</strong>：白天，正午光线通透"果冻海"最蓝｜机位：Agiba 悬崖高处俯拍海湾<br>
+  · <strong>红海出海</strong>：整天(约 08:00-16:00)｜上午水面平、光线好
+</div>
+
+<div class="section-head"><span class="kicker">Handoff</span>晚到早走交接卡</div>
+<div class="pay-summary">
+  <h4>每家酒店单独保存一张到达—离店卡</h4>
+  写清 ETA / ETD、24 小时前台或取钥匙方式、晚到不按 no-show 释放、寄存凭条/费用/开放时段、早餐盒领取点与时间、接送门牌及缓冲时间。<br>
+  本行程重点：9/27 吉萨深夜入住、9/28 马特鲁晚到、9/30 开罗机场酒店早走、10/1 卢克索 04:30 接人。所有口头承诺都补成酒店具名书面回复。
+</div>
+
+<div class="section-head"><span class="kicker">Emergency</span>紧急电话与离线资料包</div>
+<div class="pay-summary">
+  <h4>两台手机 + 国内联系人各留一份</h4>
+  · 埃及警察 <a href="tel:122">122</a>　· 旅游警察 <a href="tel:126">126</a>　· 救护 <a href="tel:123">123</a><br>
+  · 中国驻埃及使馆领保 <a href="tel:+20227363556">+20-2-27363556</a><br>
+  · 外交部 12308 热线 <a href="tel:+861012308">+86-10-12308</a> / <a href="tel:+861065612308">+86-10-65612308</a><br>
+  离线保存护照、签证、保险、机酒与活动订单 PDF、联系人、离线地图、病史/药物和银行卡挂失电话；敏感订单号不放公开网页。来源：<a href="https://eg.china-embassy.gov.cn/lsfw/20180517/202609/t20260920_12027157.htm" target="_blank">驻埃及使馆安全提醒</a>、<a href="https://cs.mfa.gov.cn/" target="_blank">中国领事服务网</a>。
+</div>
+
+<div class="section-head"><span class="kicker">Before we go</span>行前准备 To-Do <span class="cnt" id="todo-progress"></span></div>
+<div class="todo-list">${TODO_ITEMS.map(todoRow).join('')}</div>
+
+<div class="section-head">图例</div>
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--tint-blue)"></div>景点</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--tint-red)"></div>餐厅</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--tint-orange)"></div>酒店</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--text-tertiary)"></div>交通</div>
+</div>`;
+}
+
+// ── 航班登机牌数据（时刻以出票为准，未知处标注待补充）──
+const FLIGHTS = [
+  { tag: '去程 ①', date: '9/26 周六', dir: 'out',
+    from: { code: 'PEK', city: '北京' }, to: { code: 'BKK', city: '曼谷' },
+    via: '经上海 PVG 中转', dep: '以出票为准', arr: '以出票为准',
+    note: '值机时确认后续登机牌、误机改签责任与行李是否直挂 CAI；亲眼核对行李条终点。' },
+  { tag: '去程 ②', date: '9/27 周日', dir: 'out',
+    from: { code: 'BKK', city: '曼谷' }, to: { code: 'CAI', city: '开罗 T3' },
+    via: '经沙迦 SHJ 中转', dep: '以出票为准', arr: '21:30',
+    note: 'BKK / SHJ 分别确认是否需入境取行李重托、是否空侧转运及是否需过境签；抵达 CAI T3。' },
+  { tag: '返程 · CA830', date: '10/4 周日', dir: 'ret',
+    from: { code: 'CAI', city: '开罗 T3' }, to: { code: 'PEK', city: '北京 T3' },
+    via: '国航直飞 · 约 10–11h', dep: '14:15', arr: '次日 05:00',
+    note: 'CA830 开罗直飞北京，10/5 凌晨抵 PEK。建议提前 3 小时到 T3 值机。' }
+];
+
+function fcard(f) {
+  return `<div class="fcard ${f.dir}">
+    <div class="fcard-top"><span class="fcard-tag">${f.tag}</span><span class="fcard-date">${f.date}</span></div>
+    <div class="fcard-route">
+      <div class="fcol"><div class="fcode">${f.from.code}</div><div class="fcity">${f.from.city}</div></div>
+      <div class="fmid"><div class="fline"></div><div class="fplane">✈</div><div class="fline"></div></div>
+      <div class="fcol right"><div class="fcode">${f.to.code}</div><div class="fcity">${f.to.city}</div></div>
+    </div>
+    <div class="fvia">${f.via}</div>
+    <div class="fperf"></div>
+    <div class="fcard-bot"><div><span class="flabel">起飞</span><span class="fval">${f.dep}</span></div><div><span class="flabel">到达</span><span class="fval">${f.arr}</span></div></div>
+    <div class="fnote">${f.note}</div>
+  </div>`;
+}
+
+// ── 行前准备 To-Do（勾选状态存本地浏览器）──
+const TODO_ITEMS = [
+  '护照（有效期 ≥ 6 个月）',
+  'e-Visa 打印件 或 落地签 25 美元现金',
+  '美元现金（换埃镑 + 备落地签）',
+  '往返机票行程单 + 酒店订单打印件',
+  '核对联程行李直挂、转机入境与误机改签责任',
+  '保存内陆机票行李额、退改规则与酒店书面回复',
+  '防晒三件套：帽子 / 墨镜 / 高倍防晒',
+  '肠胃药 · 晕船药 · 常用药',
+  '欧标转换插头（C / F 型两圆脚）',
+  '手机流量卡 或 落地买 Vodafone/Orange',
+  '装好 App：inDrive / Careem、Google Maps、翻译',
+  '小面额埃镑（1/5/10）备小费',
+  '女生披肩 + 偏保守着装（清真寺）',
+  '防水手机袋 · 珊瑚友好防晒（红海浮潜）',
+  '按验收表核对所有酒店订单与具名回复',
+  '完成 T-72h / T-24h / 当天分时确认',
+  '两台手机与国内联系人各存一份离线资料包',
+  '截图比较酒店官网与 2 家 OTA 最终含税总价',
+  '两人分装现金、银行卡、护照原件与复印件',
+  '核红海运营商 CDWS 名录、责任险与个人保单'
+];
+
+function todoState() { try { return JSON.parse(localStorage.getItem('eg_todo') || '{}'); } catch (e) { return {}; } }
+function todoRow(t, i) {
+  const done = !!todoState()[i];
+  return `<label class="todo-row${done ? ' done' : ''}" id="todo-${i}"><input type="checkbox" ${done ? 'checked' : ''} onchange="toggleTodo(${i})"><span>${t}</span></label>`;
+}
+function toggleTodo(i) {
+  const s = todoState(); s[i] = !s[i];
+  localStorage.setItem('eg_todo', JSON.stringify(s));
+  const row = document.getElementById('todo-' + i); if (row) row.classList.toggle('done', !!s[i]);
+  updTodoProg();
+}
+function updTodoProg() {
+  const s = todoState();
+  const done = TODO_ITEMS.filter((_, i) => s[i]).length;
+  const el = document.getElementById('todo-progress'); if (el) el.textContent = done + ' / ' + TODO_ITEMS.length;
+}
+
+// ╔══════════════════════════════════════════════════════════════╗
+// ║  ENGINE — Do not modify below unless customizing behavior   ║
+// ╚══════════════════════════════════════════════════════════════╝
+
+const map = L.map('map', { center: [HOTEL.lat || 29.5, HOTEL.lng || 30.5], zoom: HOTEL.lat ? 12 : 6, zoomControl: false, attributionControl: true });
+L.control.zoom({ position: 'topright' }).addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
+
+/* ── Geolocation ── */
+const LocateControl = L.Control.extend({
+  options: { position: 'bottomright' },
+  onAdd() {
+    const btn = L.DomUtil.create('button', 'locate-btn');
+    btn.innerHTML = '📍';
+    btn.title = '我的位置';
+    L.DomEvent.disableClickPropagation(btn);
+    btn.addEventListener('click', () => {
+      btn.classList.add('active');
+      map.locate({ setView: true, maxZoom: 15 });
+    });
+    this._btn = btn;
+    return btn;
+  }
+});
+new LocateControl().addTo(map);
+let locMarker, locCircle;
+map.on('locationfound', e => {
+  const r = e.accuracy / 2;
+  if (locMarker) { locMarker.setLatLng(e.latlng); locCircle.setLatLng(e.latlng).setRadius(r); }
+  else {
+    locMarker = L.marker(e.latlng, {
+      icon: L.divIcon({ className:'', html:'<div style="width:14px;height:14px;border-radius:50%;background:#007aff;border:2.5px solid #fff;box-shadow:0 0 6px rgba(0,122,255,.5)"></div><div class="loc-pulse" style="position:absolute;top:0;left:0"></div>', iconSize:[14,14], iconAnchor:[7,7] }),
+      zIndexOffset: 2000
+    }).addTo(map);
+    locCircle = L.circle(e.latlng, { radius: r, color: '#007aff', fillColor: '#007aff', fillOpacity: .08, weight: 1 }).addTo(map);
+  }
+});
+map.on('locationerror', () => {});
+
+function icon(color, emoji) {
+  return L.divIcon({ className: '', html: `<div style="width:28px;height:28px;border-radius:50%;background:${color};border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.18)">${emoji||''}</div>`, iconSize: [28,28], iconAnchor: [14,14], popupAnchor: [0,-16] });
+}
+
+if (HOTEL.lat) L.marker([HOTEL.lat, HOTEL.lng], { icon: icon('#ff9500','🏨'), zIndexOffset: 1000 }).addTo(map).bindPopup(`<b>${HOTEL.name}</b>`);
+
+let markers = [], polylines = [];
+const emojis = { food:'🍽️', spot:'📍', hotel:'🏨', transport:'🚃', drink:'🍺' };
+
+function clearMap() { markers.forEach(m=>map.removeLayer(m)); polylines.forEach(p=>map.removeLayer(p)); markers=[]; polylines=[]; }
+
+function showDay(idx) {
+  clearMap();
+  if (idx === 0) {
+    const pts = [];
+    DAYS.forEach(d => d.locations.forEach(l => { if(l.lat) pts.push([l.lat,l.lng]); }));
+    if(pts.length) map.fitBounds(pts, {padding:[30,30]});
+    DAYS.slice(1).forEach(d => {
+      d.locations.filter(l=>l.time!=='—').forEach(l => {
+        const m = L.circleMarker([l.lat,l.lng], { radius:4, fillColor:d.color, color:'#fff', weight:1.5, fillOpacity:.9 }).addTo(map).bindPopup(`<b>${l.name}</b><br><span style="color:#86868b">${d.label}</span>`);
+        markers.push(m);
+      });
+    });
+    return;
+  }
+  const day = DAYS.find(d=>d.id===idx);
+  if(!day) return;
+  const coords = [];
+  day.locations.forEach(l => {
+    if(!l.lat) return;
+    const m = L.marker([l.lat,l.lng], { icon: icon(day.color, emojis[l.type]||'📌') }).addTo(map);
+    const gmapQ = l.gmap||encodeURIComponent(l.name+' Egypt');
+    m.bindPopup(`<b>${l.name}</b>${l.time!=='—'?'<br><span style="color:#86868b">'+l.time+'</span>':''}<br>${l.desc}${l.budget?'<br><span style="color:#ff9500">'+l.budget+'</span>':''}<br><a href="#" onclick="event.preventDefault();openAS('${l.name.replace(/'/g,"\\'")}',${l.lat},${l.lng},'${gmapQ}')">📍 导航</a>${l.xhs?' · <a href="'+l.xhs+'" target="_blank">📕 小红书</a>':''}`);
+    markers.push(m);
+    if(l.time!=='—') coords.push([l.lat,l.lng]);
+  });
+  if(coords.length>1) { const pl = L.polyline(coords, { color:day.color, weight:2.5, opacity:.5, dashArray:'6,5' }).addTo(map); polylines.push(pl); }
+  if(coords.length) map.fitBounds(coords, { padding:[40,40], maxZoom:14 });
+}
+
+// ══════════ RENDER ══════════
+function payChips(pay) {
+  if(!pay) return '';
+  let h = '<div class="pays">';
+  const m = { cash:'💴', card:'💳', suica:'Suica', paypay:'PayPay', alipay:'支付宝', wechat:'微信' };
+  for(const [k,label] of Object.entries(m)) {
+    if(pay[k]!==undefined) { const c = pay[k]===1?'ok':pay[k]===0.5?'idk':'no'; h += `<span class="pay ${c}">${label}</span>`; }
+  }
+  return h+'</div>';
+}
+
+// ── 运行环境检测：在第三方 App 的 WebView 里，自定义 scheme 基本会被拦截 ──
+const IN_APP_WEBVIEW = (() => {
+  const ua = (navigator.userAgent || '').toLowerCase();
+  return /micromessenger|xhs|xhsdiscover|discover\/|tiktok|aweme|weibo|qq\/|qqbrowser|alipayclient|dingtalk|lark|feishu|ucbrowser|baiduboxapp|toutiao|newsarticle/.test(ua);
+})();
+
+function xhsKeyword(loc) {
+  if(loc.xhsKeyword) return loc.xhsKeyword.trim();
+  return (loc.name||'').replace(/⭐.*$/g,'').replace(/（.*?）/g,'').replace(/\(.*?\)/g,'').replace(/\s+/g,' ').trim();
+}
+function xhsAppUrl(loc) { return `xhsdiscover://search/result?keyword=${encodeURIComponent(xhsKeyword(loc))}&target_search=notes&source=deeplink`; }
+function xhsWebUrl(loc) { return `https://www.xiaohongshu.com/search_result?keyword=${encodeURIComponent(xhsKeyword(loc))}&source=web_explore_feed`; }
+
+function dpKeyword(loc) {
+  if(loc.dianpingKeyword) return loc.dianpingKeyword.trim();
+  return (loc.name||'').replace(/⭐.*$/g,'').replace(/（.*?）/g,'').replace(/\(.*?\)/g,'').replace(/\s+/g,' ').trim();
+}
+function dpAppUrl(loc) { return `dianping://searchshoplist?keyword=${encodeURIComponent(dpKeyword(loc))}`; }
+function dpWebUrl(loc) { return `https://m.dianping.com/searchshop?keyword=${encodeURIComponent(dpKeyword(loc))}`; }
+
+window._extLocs = {};
+DAYS.forEach(d => d.locations.forEach(l => { window._extLocs[`${d.id}::${l.name}`] = l; }));
+window._xhsLocs = window._extLocs;
+
+function openExt(key, kind) {
+  const loc = window._extLocs[key]; if(!loc) return false;
+  if (IN_APP_WEBVIEW) {
+    window.location.href = kind==='dp' ? dpWebUrl(loc) : xhsWebUrl(loc);
+  } else {
+    window.location.href = kind==='dp' ? dpAppUrl(loc) : xhsAppUrl(loc);
+  }
+  return false;
+}
+function openXhs(key) { return openExt(key, 'xhs'); }
+function openDp(key)  { return openExt(key, 'dp'); }
+
+function locCard(loc, dayIdx) {
+  const dot = loc.type==='food'?'food':loc.type==='spot'?'spot':loc.type==='drink'?'drink':loc.type==='hotel'?'hotel':'transport';
+  const bdg = loc.type==='food'?'<span class="badge food">餐</span>':loc.type==='spot'?'<span class="badge spot">景</span>':loc.type==='drink'?'<span class="badge drink">饮</span>':'';
+  const uid = `d${dayIdx}-${loc.name.replace(/\W/g,'')}`;
+  const locKey = `${dayIdx}::${loc.name}`;
+  const gmapQ = loc.gmap||encodeURIComponent(loc.name+' Egypt');
+  let lnk = `<button class="btn nav" onclick="openAS('${loc.name.replace(/'/g,"\\'")}',${loc.lat},${loc.lng},'${gmapQ}')">📍 导航</button>`;
+  if(loc.xhs||loc.xhsKeyword) {
+    const xhsHref = IN_APP_WEBVIEW ? xhsWebUrl(loc) : xhsAppUrl(loc);
+    const xhsLabel = IN_APP_WEBVIEW ? '📕 小红书' : '📕 小红书 App';
+    lnk += `<a href="${xhsHref}" onclick="return openXhs('${locKey.replace(/'/g,"\\'")}')" class="btn xhs">${xhsLabel}</a>`;
+  }
+  const dpEnabled = loc.dianping !== false &&
+    (loc.dianping || loc.dianpingKeyword || loc.type==='food' || loc.type==='drink');
+  if(dpEnabled) {
+    const dpHref = IN_APP_WEBVIEW ? dpWebUrl(loc) : dpAppUrl(loc);
+    const dpLabel = IN_APP_WEBVIEW ? '🍜 大众点评' : '🍜 大众点评 App';
+    lnk += `<a href="${dpHref}" onclick="return openDp('${locKey.replace(/'/g,"\\'")}')" class="btn dp">${dpLabel}</a>`;
+  }
+  if(loc.reserve) lnk += `<a href="${loc.reserve}" target="_blank" class="btn rsv">📅 预约</a>`;
+  return `<div class="tl-item"><div class="tl-dot ${dot}"></div><div class="card" onclick="if(!event.target.closest('.btn,.links'))toggle('${uid}')"><div class="time">${loc.time!=='—'?loc.time:'备选'}</div><div class="name">${bdg} ${loc.name}</div><div class="desc">${loc.desc}</div>${loc.budget?'<div class="budget">'+loc.budget+'</div>':''}${payChips(loc.pay)}<div class="links">${lnk}</div>${loc.detail?'<div class="details" id="'+uid+'">'+loc.detail.replace(/\n/g,'<br>')+'</div>':''}</div></div>`;
+}
+
+function renderDay(idx) {
+  const d = DAYS.find(x=>x.id===idx); if(!d) return '';
+  const main = d.locations.filter(l=>l.time!=='—');
+  const alt = d.locations.filter(l=>l.time==='—');
+  let h = `<div class="day-head"><h2>${d.title}</h2><p>${d.date}</p></div>`;
+  if(main.length) { h += '<div class="section-head">行程</div><div class="timeline">'; main.forEach(l => h += locCard(l, idx)); h += '</div>'; }
+  if(alt.length) { h += '<div class="section-head">备选</div><div class="timeline">'; alt.forEach(l => h += locCard(l, idx)); h += '</div>'; }
+  return h;
+}
+
+// ══════════ NAV ══════════
+let cur = 0;
+const tabsEl = document.getElementById('tabs');
+const contentEl = document.getElementById('content');
+
+DAYS.forEach(d => {
+  const btn = document.createElement('button');
+  btn.className = 'tab' + (d.id===0?' active':'');
+  btn.dataset.day = d.id;
+  btn.textContent = d.label;
+  tabsEl.appendChild(btn);
+});
+
+function go(idx) {
+  cur = idx;
+  tabsEl.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', +t.dataset.day===idx));
+  contentEl.innerHTML = idx===0 ? overviewContent() : renderDay(idx);
+  if(idx===0) updTodoProg();
+  showDay(idx);
+  contentEl.scrollTo({top:0});
+  const tab = tabsEl.querySelector(`[data-day="${idx}"]`);
+  if(tab) tab.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
+}
+
+function toggle(id) { const el=document.getElementById(id); if(el) el.classList.toggle('closed'); }
+
+tabsEl.addEventListener('click', e => { const t=e.target.closest('.tab'); if(t) go(+t.dataset.day); });
+
+go(0);
+
+/* ── Action Sheet for Navigation ── */
+const asOverlay = document.createElement('div');
+asOverlay.className = 'as-overlay';
+asOverlay.innerHTML = `<div class="as-sheet">
+  <div class="as-group" id="as-opts"></div>
+  <div class="as-group"><button class="as-item as-cancel" onclick="closeAS()">取消</button></div>
+</div>`;
+document.body.appendChild(asOverlay);
+asOverlay.addEventListener('click', e => { if (e.target === asOverlay) closeAS(); });
+
+const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+function amapAppUrl(name, lat, lng) {
+  const scheme = IS_IOS ? 'iosamap' : 'androidamap';
+  return `${scheme}://viewMap?sourceApplication=trip&poiname=${encodeURIComponent(name)}&lat=${lat}&lon=${lng}&dev=0`;
+}
+function amapWebUrl(name, lat, lng) {
+  return `https://uri.amap.com/marker?position=${lng},${lat}&name=${encodeURIComponent(name)}&src=trip&coordinate=wgs84&callnative=1`;
+}
+function openAmap(name, lat, lng) {
+  if (IN_APP_WEBVIEW) { window.open(amapWebUrl(name, lat, lng)); return; }
+  window.location.href = amapAppUrl(name, lat, lng);
+}
+
+function openAS(name, lat, lng, gmap) {
+  const q = gmap || encodeURIComponent(name + ' Egypt');
+  const encName = encodeURIComponent(name);
+  const safeName = name.replace(/'/g,"\\'");
+  // WebView 内 maps:// 通常被拦截，改用 https Apple Maps URL —— iOS 系统会自动拉起 Apple Maps
+  const appleUrl = IN_APP_WEBVIEW
+    ? `https://maps.apple.com/?q=${lat},${lng}&ll=${lat},${lng}&name=${encName}`
+    : `maps://maps.apple.com/?q=${lat},${lng}&name=${encName}`;
+  const googleUrl = `https://www.google.com/maps/search/?api=1&query=${q}`;
+  document.getElementById('as-opts').innerHTML =
+    `<button class="as-item" onclick="window.open('${appleUrl}');closeAS()">🍎 Apple Maps</button>` +
+    `<button class="as-item" onclick="window.open('${googleUrl}');closeAS()">🗺️ Google Maps</button>` +
+    `<button class="as-item" onclick="openAmap('${safeName}',${lat},${lng});closeAS()">🧭 高德地图 App</button>`;
+  asOverlay.classList.add('show');
+}
+function closeAS() { asOverlay.classList.remove('show'); }
+</script>
+</body>
+</html>
